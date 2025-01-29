@@ -1,10 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <chrono>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include <cstring>
 
 #define SERVER_IP "127.0.0.1"
 #define PORT 8080
@@ -15,7 +13,6 @@ void test_network_speed(int num_packets, int packet_size, const std::string& fil
     struct sockaddr_in server_addr;
     char* buffer = new char[packet_size];
 
-    // Открытие сокета
     client_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (client_socket < 0) {
         perror("Client socket creation failed");
@@ -26,7 +23,6 @@ void test_network_speed(int num_packets, int packet_size, const std::string& fil
     server_addr.sin_port = htons(PORT);
     server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
-    // Подключение к серверу
     if (connect(client_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         perror("Connection failed");
         exit(1);
@@ -47,25 +43,22 @@ void test_network_speed(int num_packets, int packet_size, const std::string& fil
         }
         auto packet_end = std::chrono::high_resolution_clock::now();
 
-        double packet_time = std::chrono::duration<double>(packet_end - packet_start).count() * 1000; // ms
+        double packet_time = std::chrono::duration<double>(packet_end - packet_start).count() * 1000;
         std::cout << "Packet " << (i + 1) << " sent in " << packet_time << " ms\n";
 
-        // Запись времени отправки каждого пакета в файл
         outfile << "Packet " << (i + 1) << " Time: " << packet_time << " ms\n";
     }
 
     auto end = std::chrono::high_resolution_clock::now();
     double elapsed_time = std::chrono::duration<double>(end - start).count();
-    double speed = (num_packets * packet_size) / elapsed_time / 1024 / 1024; // MB/s
-    double latency = elapsed_time / num_packets * 1000; // ms
+    double speed = (num_packets * packet_size) / elapsed_time / 1024 / 1024;
+    double latency = elapsed_time / num_packets * 1000;
 
-    // Вывод итоговых данных в консоль
     std::cout << "\nTest finished!\n";
     std::cout << "Total Time: " << elapsed_time << " seconds\n";
     std::cout << "Speed: " << speed << " MB/s\n";
     std::cout << "Average Latency: " << latency << " ms\n";
 
-    // Запись итоговых данных в файл
     outfile << "\nTotal Time: " << elapsed_time << " seconds\n";
     outfile << "Speed: " << speed << " MB/s\n";
     outfile << "Average Latency: " << latency << " ms\n\n";
@@ -76,9 +69,8 @@ void test_network_speed(int num_packets, int packet_size, const std::string& fil
 }
 
 int main(int argc, char* argv[]) {
-    // Обработка аргументов
-    int num_packets = 50;  // по умолчанию 50 пакетов
-    int packet_size = 512; // по умолчанию 512 байт
+    int num_packets = 50;
+    int packet_size = 512;
 
     if (argc > 3) {
         std::cerr << "Usage: " << argv[0] << " [num_packets] [packet_size]\n";
@@ -93,7 +85,6 @@ int main(int argc, char* argv[]) {
         packet_size = std::stoi(argv[2]);
     }
 
-    // Запуск теста
     std::string filename = "result.txt";
     test_network_speed(num_packets, packet_size, filename);
 
